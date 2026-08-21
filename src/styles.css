@@ -1,0 +1,179 @@
+:root {
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  background: #201813;
+  color: #fff7e9;
+  font-family: Inter, system-ui, sans-serif;
+}
+button,
+input {
+  font: inherit;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #f2bd77;
+  outline-offset: 3px;
+}
+.lottery-page {
+  width: min(1060px, calc(100% - 2rem));
+  margin: auto;
+  padding: 6rem 0 4rem;
+}
+.eyebrow {
+  color: #f2bd77;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  margin: 0 0 0.55rem;
+}
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+h1 {
+  max-width: 11ch;
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 0.88;
+  letter-spacing: -0.075em;
+  margin-bottom: 1rem;
+}
+.intro {
+  max-width: 55ch;
+  color: #e5c9a6;
+  line-height: 1.55;
+}
+.connection,
+.explain,
+.composer p {
+  color: #d3bfa5;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.lottery-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+.card {
+  background: linear-gradient(145deg, #38271d, #2a1e18);
+  border: 1px solid #ffffff1e;
+  border-radius: 22px;
+  padding: 1.35rem;
+  box-shadow: 0 20px 45px #0003;
+}
+.composer label:not(.mesh-name-input label) {
+  display: block;
+  font-weight: 750;
+  font-size: 0.85rem;
+  margin: 0.9rem 0 0.38rem;
+}
+.composer input {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid #ffffff36;
+  background: #1d1410;
+  color: #fff7e9;
+}
+.mesh-name-input {
+  margin-top: 0.2rem;
+}
+.primary {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: #f2bd77;
+  color: #34200d;
+  font-weight: 900;
+  padding: 0.82rem;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+blockquote {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-left: 3px solid #f2bd77;
+  background: #ffffff08;
+  line-height: 1.5;
+}
+.draw {
+  display: flex;
+  flex-direction: column;
+}
+.draw .primary {
+  margin-top: auto;
+}
+.winner {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #f2bd77;
+  border-radius: 16px;
+  background: #5a3820;
+  display: grid;
+  gap: 0.35rem;
+}
+.winner span,
+.winner small {
+  color: #f4d4a9;
+  font-size: 0.82rem;
+}
+.winner strong {
+  font-family: Georgia, serif;
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  line-height: 1;
+}
+.winner em {
+  color: #fff0d0;
+}
+.shelf {
+  margin-top: 1rem;
+}
+.shelf ol {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem;
+}
+.shelf li {
+  padding: 0.85rem;
+  border-radius: 14px;
+  background: #ffffff09;
+  display: grid;
+  gap: 0.25rem;
+}
+.shelf li span,
+.shelf li small {
+  color: #d3bfa5;
+  font-size: 0.75rem;
+}
+.empty {
+  color: #d3bfa5;
+  padding: 2rem 0;
+  margin-bottom: 0;
+}
+@media (max-width: 720px) {
+  .lottery-page {
+    padding-top: 5.3rem;
+  }
+  .lottery-grid,
+  .shelf ol {
+    grid-template-columns: 1fr;
+  }
+}
