@@ -20,8 +20,9 @@ describe("book club lottery", () => {
   it("renders nomination controls", () => {
     render(<Feature room={createMockRoom()} config={config} />);
     expect(
-      screen.getByRole("heading", { name: "Let the next read choose itself." }),
+      screen.getByRole("heading", { name: "Choose the next book together." }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Book title")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add my nomination" })).toBeInTheDocument();
   });
 });

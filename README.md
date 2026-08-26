@@ -1,94 +1,80 @@
-# **APP_NAME**
+# Book Club Draw
 
-[![pages](https://img.shields.io/badge/live-baditaflorin.github.io%2F__APP_NAME__-__ACCENT_NOHASH__)](https://baditaflorin.github.io/__APP_NAME__/)
-[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/baditaflorin/__APP_NAME__/blob/main/package.json)
-[![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![Live app](https://img.shields.io/badge/live-Book%20Club%20Draw-d9b66b)](https://baditaflorin.github.io/mesh-book-club-lottery/)
+[![Version](https://img.shields.io/badge/version-0.1.0-1f564b)](https://github.com/baditaflorin/mesh-book-club-lottery/blob/main/package.json)
+[![License](https://img.shields.io/badge/license-MIT-3d7661)](./LICENSE)
 
-> **DESCRIPTION**
+> A quiet, shared reading-room draw: every reader puts forward one title, and every device sees the same reproducible pick.
 
-**Live → https://baditaflorin.github.io/__APP_NAME__/**
+**Live:** https://baditaflorin.github.io/mesh-book-club-lottery/
 
-**Source → https://github.com/baditaflorin/__APP_NAME__**
+**Source:** https://github.com/baditaflorin/mesh-book-club-lottery
 
-**Tip the dev (buy a coffee) → https://www.paypal.com/paypalme/florinbadita**
+![Book Club Draw on one device](docs/screenshot.png)
 
----
+## What it does
 
-![screenshot](docs/screenshot.png)
+Book Club Draw is a rootless peer-to-peer browser app for deciding the next club read without a host or a hidden server-side lottery.
 
-> Two peers, side-by-side, in the same room. Drop a `tests/demo/scenario.mjs`
-> exporting `default async (a, b) => …` and run `npm run demo` to regenerate
-> `docs/preview.png` plus `docs/demo-a.webm` / `docs/demo-b.webm` clips.
+- Each reader can add exactly one validated book and author to a shared list.
+- The common pick is computed from the same sorted nominations on every device, so the result is inspectable and reproducible.
+- A reveal made by any reader is shared with the room; the winning title and its nominator are visible to everyone.
+- The room runs directly through the Mesh Common WebRTC/Yjs layer. There is no application database or app-owned backend.
 
-![preview](docs/preview.png)
+![Two readers see the same result](docs/preview.png)
 
-## What it is
+## Use it in a reading group
 
-A **rootless-computing** peer-to-peer browser app. No backend of its own beyond the self-hosted WebRTC stack listed below. State lives in a Yjs mesh shared by everyone in the same room.
+1. Open the live app and use **Invite** in the top bar to share the same room with the group.
+2. Each person enters a name, a book title, and an author, then selects **Add my nomination**.
+3. When the list is ready, anyone selects **Reveal the room’s pick**. Every connected reader sees the same result.
 
-Read the principles → **https://baditaflorin.github.io/rootless-computing/principles.html**
+One entry is locked after submission so a single device cannot inflate its odds. The room URL is the access boundary: only share it with people who should see the nominations.
 
-## Quickstart
+## Development
 
-Open the live URL on two devices in the same room (set in ⚙ settings, or scan the room QR). Everything else is in-app.
-
-For local hacking:
+`mesh-common` must sit beside this repository because the app consumes it through `file:../mesh-common`.
 
 ```bash
 git clone https://github.com/baditaflorin/mesh-common
-git clone https://github.com/baditaflorin/__APP_NAME__
-cd __APP_NAME__
-npm install
+git clone https://github.com/baditaflorin/mesh-book-club-lottery
+cd mesh-common && npm ci
+cd ../mesh-book-club-lottery && npm ci
 npm run dev
 ```
 
-`mesh-common` must sit as a **sibling** directory because `package.json` references it via `file:../mesh-common`.
-
-## Self-hosted infrastructure
-
-| Repo                                              | Endpoint                               | Purpose                     |
-| ------------------------------------------------- | -------------------------------------- | --------------------------- |
-| https://github.com/baditaflorin/signaling-server  | `wss://turn.0docker.com/ws`            | y-webrtc signaling fan-out  |
-| https://github.com/baditaflorin/turn-token-server | `https://turn.0docker.com/credentials` | HMAC TURN creds, 1-hour TTL |
-| https://github.com/baditaflorin/coturn-hetzner    | `turn:turn.0docker.com:3479`           | TURN relay                  |
-
-## Settings overrides
-
-The settings drawer lets the user override signaling and TURN endpoints. localStorage keys:
-
-- `__APP_NAME__:signalingUrl`
-- `__APP_NAME__:turnTokenUrl`
-- `__APP_NAME__:iceServers`
-- `__APP_NAME__:room`
-
-If endpoints are blank or unreachable, the app falls back to STUN-only.
-
-## Version + commit on every screen
-
-The bottom-right footer on every screen of the live app shows:
-
-- `source` → this repo
-- `tip ♥` → PayPal
-- `vX.Y.Z · <short-sha>` — version from `package.json` plus the build-time git commit
-
-## Build & deploy
-
-GitHub Pages serves the committed `docs/` directory on the `main` branch. There is no GitHub Actions build workflow; local Husky-style hooks gate formatting / typecheck / smoke build before each push.
+The important local checks are:
 
 ```bash
-npm run smoke                                    # build + sanity-check docs/
-bash ../mesh-common/scripts/screenshot-app.sh    # regenerate docs/screenshot.png
+npm run fmt:check
+npm run typecheck
+npm run test:unit
+npm run smoke
+npm run test:e2e
+MESH_RUN_LEAK_TEST=1 MESH_LEAK_DURATION_MS=5000 npm run test:e2e -- --workers=1
+bash ../mesh-common/scripts/audit-app-security.sh
 ```
 
-## Privacy
+The E2E suite includes a two-reader nomination and reveal flow plus first-viewport contracts at 390 × 844 and 1141 × 602.
 
-<!-- mesh:privacy-section:start -->
+## Release assets and deployment
 
-Everything you publish to a room is visible to every peer in that room. Your local device's name, key, and choices stay local. Cryptographic signatures prove **who** wrote each entry; they do **not** prevent peers from reading or copying entries. The room URL is the access control — share it deliberately.
+GitHub Pages serves the committed `docs/` directory from `main`. Woodpecker validates formatting, static types, tests, and the Pages build using a sibling checkout of Mesh Common.
 
-See `docs/privacy.md` for the full threat model — capabilities used, what other peers in the mesh see, what the self-hosted infra sees, what stays local.
-<!-- mesh:privacy-section:end -->
+```bash
+npm run build
+bash ../mesh-common/scripts/screenshot-app.sh
+bash ../mesh-common/scripts/record-demo.sh
+```
+
+The release bundle includes a single-device product screenshot, a two-reader preview, and a short recorded draw:
+
+![Recorded shared draw](docs/demo.gif)
+
+## Privacy and infrastructure
+
+Nominations, reader names, and revealed results are visible to peers in the same room. The signaling service helps peers find one another; TURN is used only when a direct peer connection cannot be made. See [the full privacy model](docs/privacy.md) for the data boundaries and limitations.
 
 ## License
 
-MIT — see `LICENSE`.
+MIT — see [LICENSE](./LICENSE).

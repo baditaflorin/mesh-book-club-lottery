@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import {
+  MeshButton,
   MeshNameInput,
+  MeshPresence,
+  MeshStatusPill,
+  MeshSurface,
   useNamedPeer,
   usePerPeerValue,
   type MeshConfig,
@@ -61,130 +65,205 @@ export function Feature({ room, config }: Props) {
   const winner = entries[drawIndex(entries)];
   const revealed = reveals.entries.some(([, value]) => value === true);
   const canNominate = Boolean(room) && !mine && title.trim().length > 0 && author.trim().length > 0;
+  const peerCount = room?.peerCount ?? 0;
+  const roomReady = Boolean(room);
+  const entryLabel = entries.length === 1 ? "title" : "titles";
   return (
-    <main className="lottery-page">
-      <header>
-        <p className="eyebrow">Mesh book club</p>
-        <h1>Let the next read choose itself.</h1>
-        <p className="intro">
-          Each reader gets one lasting nomination. The result is a room-wide, reproducible draw from
-          the exact shared list.
-        </p>
-        <p role="status" className="connection">
-          {room
-            ? `Connected with ${room.peerCount} peer${room.peerCount === 1 ? "" : "s"}`
-            : "Connecting to your reading room…"}
-        </p>
-      </header>
-      <section className="lottery-grid">
-        <section className="card composer" aria-labelledby="nominate-heading">
-          <p className="eyebrow">Your nomination</p>
-          <h2 id="nominate-heading">
-            {mine ? "Your book is in the draw" : "One reader, one book"}
-          </h2>
-          {mine ? (
-            <>
-              <blockquote>
+    <main className="book-club-page">
+      <section className="book-club-frame" aria-labelledby="book-club-heading">
+        <header className="book-club-hero">
+          <div className="book-club-hero-copy">
+            <p className="book-club-kicker">Reading room / shared selection</p>
+            <h1 id="book-club-heading">Choose the next book together.</h1>
+            <p className="book-club-intro">
+              One considered nomination from every reader. One transparent draw the whole room can
+              verify.
+            </p>
+          </div>
+          <div className="book-club-room-state" aria-label="Reading room status">
+            <MeshPresence
+              count={peerCount}
+              label={peerCount === 1 ? "reader present" : "readers present"}
+              state={roomReady ? "connected" : "connecting"}
+              size="md"
+            />
+            <MeshStatusPill
+              tone={roomReady ? "success" : "warning"}
+              dot
+              announce="polite"
+              className="book-club-status"
+            >
+              {roomReady ? "Shared list live" : "Joining room"}
+            </MeshStatusPill>
+          </div>
+        </header>
+
+        <section className="book-club-workspace" aria-label="Book club draw workspace">
+          <MeshSurface
+            as="section"
+            tone="raised"
+            padding="lg"
+            className="book-club-nomination"
+            aria-labelledby="nominate-heading"
+          >
+            <div className="book-club-panel-heading">
+              <p className="book-club-step">01 / Your entry</p>
+              <h2 id="nominate-heading">
+                {mine ? "Your title is on the list." : "Bring one title to the table."}
+              </h2>
+            </div>
+            {mine ? (
+              <div className="book-club-saved-entry" role="status">
+                <span className="book-club-saved-label">Locked nomination</span>
                 <strong>{mine.title}</strong>
-                <br />
-                by {mine.author}
-              </blockquote>
-              <p role="status">
-                Saved once for this device. Nominations stay fixed so the draw cannot be inflated.
-              </p>
-            </>
-          ) : (
-            <>
-              <MeshNameInput
-                label="Your name"
-                value={named.name}
-                onChange={named.setName}
-                placeholder="Reader name"
-                maxLength={32}
-              />
-              <label htmlFor="title">Book title</label>
-              <input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value.slice(0, 90))}
-                maxLength={90}
-                placeholder="The book you want to read"
-              />
-              <label htmlFor="author">Author</label>
-              <input
-                id="author"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value.slice(0, 70))}
-                maxLength={70}
-                placeholder="Who wrote it?"
-              />
-              <button
-                type="button"
-                className="primary"
-                onClick={() =>
-                  canNominate &&
+                <span>by {mine.author}</span>
+                <p>
+                  Your entry is fixed for this draw, keeping every reader’s chance equally weighted.
+                </p>
+              </div>
+            ) : (
+              <form
+                className="book-club-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (!canNominate) return;
                   nominations.setMy({
                     title: title.trim(),
                     author: author.trim(),
                     submittedAt: Date.now(),
-                  })
-                }
-                disabled={!canNominate}
+                  });
+                }}
               >
-                Add my one nomination
-              </button>
-              <p role="status">
-                The title and author are validated before they enter the shared room.
-              </p>
-            </>
-          )}
-        </section>
-        <section className="card draw" aria-labelledby="draw-heading">
-          <p className="eyebrow">The transparent draw</p>
-          <h2 id="draw-heading">
-            {entries.length} book{entries.length === 1 ? "" : "s"} in the hat
-          </h2>
-          <p className="explain">
-            Everyone derives the same winner from the sorted shared nominations. Any peer can reveal
-            it; no hidden host or server decides.
-          </p>
-          {!revealed ? (
-            <button
-              className="primary"
-              type="button"
-              onClick={() => reveals.setMy(true)}
-              disabled={!room || !entries.length}
-            >
-              Reveal the room’s pick
-            </button>
-          ) : winner ? (
-            <div className="winner" role="status">
-              <span>Tonight’s pick</span>
-              <strong>{winner[1].title}</strong>
-              <em>by {winner[1].author}</em>
-              <small>Nominated by {nameFor(winner[0], named.nameOf)}</small>
+                <MeshNameInput
+                  label="Your name"
+                  value={named.name}
+                  onChange={named.setName}
+                  placeholder="Reader name"
+                  maxLength={32}
+                  className="book-club-name"
+                />
+                <label className="book-club-field" htmlFor="title">
+                  <span>Book title</span>
+                  <input
+                    id="title"
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value.slice(0, 90))}
+                    maxLength={90}
+                    placeholder="The book you want to read"
+                  />
+                </label>
+                <label className="book-club-field" htmlFor="author">
+                  <span>Author</span>
+                  <input
+                    id="author"
+                    value={author}
+                    onChange={(event) => setAuthor(event.target.value.slice(0, 70))}
+                    maxLength={70}
+                    placeholder="Who wrote it?"
+                  />
+                </label>
+                <MeshButton
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={!canNominate}
+                >
+                  Add my nomination
+                </MeshButton>
+                <p className="book-club-form-note">
+                  Your entry is published to this room once, then held for the common draw.
+                </p>
+              </form>
+            )}
+          </MeshSurface>
+
+          <MeshSurface
+            as="section"
+            tone="accent"
+            padding="lg"
+            className="book-club-draw"
+            aria-labelledby="draw-heading"
+          >
+            <div className="book-club-panel-heading">
+              <p className="book-club-step">02 / Room draw</p>
+              <h2 id="draw-heading">The table is waiting.</h2>
             </div>
-          ) : (
-            <p className="empty">Add a nomination before revealing.</p>
-          )}
+            <div
+              className="book-club-count"
+              aria-label={`${entries.length} ${entryLabel} in the draw`}
+            >
+              <span>{String(entries.length).padStart(2, "0")}</span>
+              <p>
+                {entryLabel} ready for
+                <br />
+                the shared pick
+              </p>
+            </div>
+            {!revealed ? (
+              <div className="book-club-draw-action">
+                <p>
+                  The result is derived from the exact same list on every connected device. No host
+                  gets to choose it.
+                </p>
+                <MeshButton
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  onClick={() => reveals.setMy(true)}
+                  disabled={!roomReady || !entries.length}
+                >
+                  Reveal the room’s pick
+                </MeshButton>
+              </div>
+            ) : winner ? (
+              <div className="book-club-winner" role="status" aria-live="polite">
+                <span className="book-club-winner-label">Tonight’s pick</span>
+                <strong>{winner[1].title}</strong>
+                <em>by {winner[1].author}</em>
+                <small>Nominated by {nameFor(winner[0], named.nameOf)}</small>
+              </div>
+            ) : (
+              <p className="book-club-empty">Add a title before the room can draw.</p>
+            )}
+          </MeshSurface>
         </section>
-      </section>
-      <section className="card shelf" aria-labelledby="shelf-heading">
-        <p className="eyebrow">Shared shelf</p>
-        <h2 id="shelf-heading">Everyone’s one book</h2>
-        {entries.length ? (
-          <ol>
-            {entries.map(([id, n]) => (
-              <li key={id}>
-                <span>{nameFor(id, named.nameOf)}</span>
-                <strong>{n.title}</strong>
-                <small>{n.author}</small>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="empty">The shelf fills as readers arrive.</p>
-        )}
+
+        <MeshSurface
+          as="section"
+          tone="quiet"
+          padding="lg"
+          className="book-club-shelf"
+          aria-labelledby="shelf-heading"
+        >
+          <div className="book-club-shelf-heading">
+            <div>
+              <p className="book-club-step">Shared reading list</p>
+              <h2 id="shelf-heading">The books on the table</h2>
+            </div>
+            <MeshStatusPill tone={entries.length ? "info" : "neutral"} dot>
+              {entries.length ? `${entries.length} ${entryLabel} queued` : "Open for nominations"}
+            </MeshStatusPill>
+          </div>
+          {entries.length ? (
+            <ol className="book-club-list">
+              {entries.map(([id, nomination], index) => (
+                <li key={id}>
+                  <span className="book-club-list-order">{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <strong>{nomination.title}</strong>
+                    <span>by {nomination.author}</span>
+                  </div>
+                  <small>{nameFor(id, named.nameOf)}</small>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="book-club-shelf-empty">
+              The shared list will appear here as readers add their chosen book.
+            </p>
+          )}
+        </MeshSurface>
       </section>
     </main>
   );
