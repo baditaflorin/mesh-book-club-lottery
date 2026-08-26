@@ -50,19 +50,19 @@ async function openSettings(page: Page): Promise<Locator> {
  * console errors.
  */
 
-test("page loads with version + source + tip visible", async ({ page }) => {
+test("page loads with modern chrome and release information in settings", async ({ page }) => {
   const c = captureConsoleErrors(page);
   await page.goto("./");
   await closeInitiallyOpenSettings(page);
 
-  // Self-ref bar contains a "source" link, a "tip" link, and a version stamp.
-  await expect(page.getByRole("link", { name: /source/i }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /tip/i }).first()).toBeVisible();
-  // Version stamp lives in the self-ref bar — mesh-common's class is
-  // `.mesh-self-ref`, legacy apps use `.self-ref`. Both render a `vN.N.N`
-  // string in that footer.
-  const versionLocator = page.locator(".mesh-self-ref, .self-ref").getByText(/^v\d/);
-  await expect(versionLocator.first()).toBeVisible();
+  // Modern inset shells trade the legacy footer for a compact product app bar;
+  // source/support/version remain available in the accessible settings footer.
+  await expect(page.locator("[data-mesh-app-shell]").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Invite" })).toBeVisible();
+  const drawer = await openSettings(page);
+  await expect(drawer.getByRole("link", { name: /source/i })).toBeVisible();
+  await expect(drawer.getByRole("link", { name: /support/i })).toBeVisible();
+  await expect(drawer.getByText(/^v\d/)).toBeVisible();
 
   // Allow a moment for async TURN fetch / WebRTC handshake; benign warnings
   // about TURN unreachable are OK, but real errors are not.

@@ -34,8 +34,11 @@ test("two peers in the same room can both load", async ({ browser, baseURL }) =>
     // accessibility tree. Close it on each peer before asserting the shared
     // app surface, without changing the app's onboarding behavior.
     await Promise.all([closeInitiallyOpenSettings(a), closeInitiallyOpenSettings(b)]);
-    await expect(a.locator(".mesh-self-ref, .self-ref").first()).toBeVisible();
-    await expect(b.locator(".mesh-self-ref, .self-ref").first()).toBeVisible();
+    // Modern inset-shell apps intentionally replace the legacy self-reference
+    // footer with the compact product app bar. Assert the real shared shell
+    // rather than requiring retired legacy chrome.
+    await expect(a.locator("[data-mesh-app-shell]").first()).toBeVisible();
+    await expect(b.locator("[data-mesh-app-shell]").first()).toBeVisible();
     // Both should reach a non-loading state within the timeout — most apps
     // either show a count, a heading, or a primary control. We assert that
     // at least one <h1> is present on both pages.
