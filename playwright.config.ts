@@ -12,6 +12,9 @@ export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 30_000,
   expect: { timeout: 5_000 },
+  // Shared-room browser contracts intentionally share local collaboration
+  // primitives. Run files serially on CI to keep the suite deterministic.
+  workers: process.env["CI"] ? 1 : undefined,
   fullyParallel: false,
   reporter: process.env["CI"] ? "list" : [["list"], ["json", { outputFile: "test-results.json" }]],
   use: {
