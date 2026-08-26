@@ -2,6 +2,7 @@ import { createMeshConfig } from "@baditaflorin/mesh-common";
 
 export const config = createMeshConfig({
   appName: "mesh-book-club-lottery",
+  breadcrumbs: false,
   displayName: "Book Club Draw",
   visualProfile: "gather",
   shellLayout: "inset",
