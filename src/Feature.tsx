@@ -65,7 +65,9 @@ export function Feature({ room, config }: Props) {
   const winner = entries[drawIndex(entries)];
   const revealed = reveals.entries.some(([, value]) => value === true);
   const canNominate = Boolean(room) && !mine && title.trim().length > 0 && author.trim().length > 0;
-  const peerCount = room?.peerCount ?? 0;
+  // `YRoom.peerCount` tracks remote peers. Include this reader so the
+  // product-facing presence label never calls a connected solo reader "0".
+  const peerCount = room ? room.peerCount + 1 : 0;
   const roomReady = Boolean(room);
   const entryLabel = entries.length === 1 ? "title" : "titles";
   return (
